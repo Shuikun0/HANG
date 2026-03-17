@@ -596,7 +596,8 @@
         loadData();
         renderTiersUI(); 
 
-        fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
+// 废弃不稳定的阿里云接口，改用全球稳定的 jsDelivr CDN ECharts 官方底层地图包
+        fetch('https://cdn.jsdelivr.net/npm/echarts@4.9.0/map/json/china.json')
             .then(response => response.json())
             .then(geoJson => {
                 geoJson.features = geoJson.features.filter(feature => {
