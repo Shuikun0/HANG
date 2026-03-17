@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>夯HANG - 中国地图自定义标注</title>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -12,13 +12,15 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #121214; color: #fff;
             overflow: hidden; user-select: none;
+            /* 阻止移动端双击放大和默认手势 */
+            touch-action: none; 
         }
         #map-container { width: 100vw; height: 100vh; z-index: 1; }
         
         #watermark {
             position: absolute; bottom: 30px; left: 40px;
             font-size: 100px; font-weight: 900; text-decoration: none;
-            color: rgba(255, 255, 255, 0.05); z-index: 100;
+            color: rgba(255, 255, 255, 0.05); z-index: 10;
             transition: 0.3s;
         }
         #watermark:hover { color: rgba(255, 255, 255, 0.1); transform: scale(1.02); }
@@ -28,7 +30,38 @@
             background: rgba(30, 30, 32, 0.85); border: 1px solid #333336; 
             border-radius: 8px; padding: 15px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); 
             width: 250px; backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
         }
+
+        /* 折叠面板时的样式 */
+        #config-panel.collapsed #tier-list, 
+        #config-panel.collapsed .panel-bottom-bar {
+            display: none !important;
+        }
+        #config-panel.collapsed { padding-bottom: 10px; }
+
+        .panel-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px dashed transparent; transition: 0.3s;
+        }
+        #config-panel:not(.collapsed) .panel-header {
+            border-bottom-color: #333336; padding-bottom: 10px; margin-bottom: 15px;
+        }
+
+        #panel-title {
+            margin: 0; font-size: 15px; font-weight: 800;
+            letter-spacing: 2px; color: #aaa; text-transform: uppercase;
+        }
+
+        .header-btns { display: flex; gap: 8px; }
+
+        .gear-btn {
+            background: #2c2c2e; border: 1px solid #333336; color: #aaa; cursor: pointer;
+            width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+            transition: 0.3s; outline: none; flex-shrink: 0;
+        }
+        .gear-btn:hover { background: #333339; color: #fff; transform: scale(1.05); }
+        .gear-btn svg { width: 16px; height: 16px; fill: currentColor; }
 
         #tier-list { display: flex; flex-direction: column; gap: 10px; }
         .tier-row {
@@ -44,7 +77,6 @@
             border-radius: 6px; font-size: 15px; color: #aaa; font-weight: 700;
             cursor: grab; flex-shrink: 0;
         }
-        .key-hint:active { cursor: grabbing; background: #444; }
         
         .color-dot {
             width: 28px; height: 28px; border-radius: 6px; cursor: pointer;
@@ -87,17 +119,9 @@
             transition: 0.2s; outline: none; letter-spacing: 1px;
         }
         .export-btn:hover { background: #237804; color: #fff; }
-        
-        .gear-btn {
-            background: #2c2c2e; border: 1px solid #333336; color: #aaa; cursor: pointer;
-            width: 38px; height: 38px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
-            transition: 0.3s; outline: none; flex-shrink: 0;
-        }
-        .gear-btn:hover { background: #333339; color: #fff; transform: rotate(90deg); }
-        .gear-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
         #settings-menu {
-            display: none; position: absolute; bottom: 15px; left: 290px; z-index: 200;
+            display: none; position: absolute; bottom: 60px; right: -160px; z-index: 200;
             background: #1e1e20; border: 1px solid #333; padding: 10px;
             border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.8); width: 150px;
         }
@@ -142,6 +166,26 @@
         .modal-btn-clear { background: #2a2a2c; color: #888; margin-top: 4px; text-shadow: none; }
         .modal-btn-clear:hover { background: #ff4d4f; color: #fff; }
 
+        /* ======= 移动端核心适配 (屏幕宽度小于 768px 生效) ======= */
+        @media (max-width: 768px) {
+            #config-panel {
+                top: auto; bottom: 20px; left: 50%; transform: translateX(-50%);
+                width: 85vw; max-height: 45vh; overflow-y: auto; padding: 12px;
+            }
+            #settings-menu {
+                right: 0; left: auto; bottom: 100%; top: auto; margin-bottom: 10px;
+            }
+            #watermark { 
+                font-size: 50px; bottom: auto; top: 15px; left: 20px; 
+            }
+            #color-popover {
+                grid-template-columns: repeat(6, 1fr); /* 色板变成 6 列更紧凑 */
+                left: 50% !important; transform: translateX(-50%); top: 50% !important; margin-top: -100px;
+            }
+            .btn-del { opacity: 1; } /* 移动端没有 hover，删除键常驻显示 */
+        }
+
+        /* 导出纯净模式 */
         body.exporting .no-export { display: none !important; }
         body.exporting #config-panel { box-shadow: none !important; border-color: transparent !important; background: transparent !important; backdrop-filter: none !important; padding: 0 !important; }
         body.exporting .tier-row { background: transparent !important; border: none !important; }
@@ -155,25 +199,33 @@
     <div id="color-popover"></div>
 
     <div id="config-panel">
+        <div class="panel-header no-export">
+            <h4 id="panel-title">夯HANG</h4>
+            <div class="header-btns">
+                <button class="gear-btn" onclick="toggleSettings(event)" title="设置">
+                    <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+                </button>
+                <button class="gear-btn" id="collapse-btn" onclick="toggleCollapse(event)" title="折叠面板">
+                    <svg viewBox="0 0 24 24" id="collapse-icon"><path d="M19 13H5v-2h14v2z"/></svg> </button>
+            </div>
+            
+            <div id="settings-menu">
+                <div class="setting-row">
+                    <span class="setting-label">显示地图地名</span>
+                    <label class="switch">
+                        <input type="checkbox" id="show-labels" onchange="saveData(); if(isMapLoaded) renderMap()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <button class="setting-btn danger" onclick="clearAnnotations()">🗑️ 清除全部标注</button>
+                <button class="setting-btn" onclick="resetDefaults(false)">🔄 恢复默认配置</button>
+            </div>
+        </div>
+
         <div id="tier-list"></div>
         
         <div class="panel-bottom-bar no-export">
             <button class="export-btn" onclick="exportImage()">📸 一键导出图片</button>
-            <button class="gear-btn" onclick="toggleSettings(event)">
-                <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
-            </button>
-        </div>
-        
-        <div id="settings-menu" class="no-export">
-            <div class="setting-row">
-                <span class="setting-label">显示地图地名</span>
-                <label class="switch">
-                    <input type="checkbox" id="show-labels" onchange="saveData(); if(isMapLoaded) renderMap()">
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <button class="setting-btn danger" onclick="clearAnnotations()">🗑️ 清除全部标注</button>
-            <button class="setting-btn" onclick="resetDefaults(false)">🔄 恢复默认配置</button>
         </div>
     </div>
 
@@ -190,14 +242,24 @@
         const modal = document.getElementById('rating-modal');
         const settingsMenu = document.getElementById('settings-menu');
         const showLabelsSwitch = document.getElementById('show-labels');
+        const configPanel = document.getElementById('config-panel');
+        const collapseIcon = document.getElementById('collapse-icon');
         
         let hoveredProvince = ''; 
         let currentProvince = ''; 
         let activeTierForColor = null;
         let isMapLoaded = false; 
 
-        const PERFECT_CENTER = [100, 36]; 
-        const PERFECT_ZOOM = 1.05;
+        // 动态判断是否为移动端
+        const isMobile = () => window.innerWidth < 768;
+        
+        // 移动端和电脑端的专属黄金视角
+        let PERFECT_CENTER = isMobile() ? [104, 35] : [100, 36]; 
+        let PERFECT_ZOOM = isMobile() ? 1.2 : 1.05;
+
+        // 默认面板折叠状态：手机端默认折叠，电脑端默认展开
+        let isCollapsed = isMobile(); 
+
         const uid = () => 'T' + Math.random().toString(36).substr(2, 5);
 
         const defaultTiersConfig = [
@@ -222,7 +284,24 @@
             '甘肃', '青海', '宁夏', '新疆', '台湾', '香港', '澳门'
         ];
 
-        // --- 本地存储核心逻辑 ---
+        // --- 面板折叠逻辑 ---
+        function applyCollapseState() {
+            if(isCollapsed) {
+                configPanel.classList.add('collapsed');
+                collapseIcon.innerHTML = '<path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>'; // 加号
+            } else {
+                configPanel.classList.remove('collapsed');
+                collapseIcon.innerHTML = '<path d="M19 13H5v-2h14v2z"/>'; // 减号
+            }
+        }
+        
+        function toggleCollapse(e) {
+            e.stopPropagation();
+            isCollapsed = !isCollapsed;
+            applyCollapseState();
+        }
+
+        // --- 本地存储 ---
         function saveData() {
             localStorage.setItem('hang_tiers', JSON.stringify(tiers));
             localStorage.setItem('hang_scores', JSON.stringify(provinceScores));
@@ -251,13 +330,12 @@
                 showLabelsSwitch.checked = (savedShowLabels === 'true');
             }
         }
-        // -----------------------
 
         function resetDefaults(skipRender = true) {
             tiers = defaultTiersConfig.map(t => ({ id: uid(), text: t.text, color: t.color }));
             provinceScores = {};
             settingsMenu.style.display = 'none';
-            saveData(); // 保存重置状态
+            saveData(); 
             renderTiersUI(); 
             if (isMapLoaded && !skipRender) renderMap();
         }
@@ -265,7 +343,7 @@
         function clearAnnotations() {
             provinceScores = {};
             settingsMenu.style.display = 'none';
-            saveData(); // 保存清理状态
+            saveData(); 
             if(isMapLoaded) renderMap();
         }
 
@@ -278,7 +356,7 @@
         function updateText(id, val) {
             const t = tiers.find(x => x.id === id);
             if (t) t.text = val;
-            saveData(); // 保存文本修改
+            saveData(); 
             if(isMapLoaded) renderMap();
         }
 
@@ -286,7 +364,7 @@
             if (tiers.length >= 9) return;
             const randomColor = palettes[8 + Math.floor(Math.random() * 8)];
             tiers.push({ id: uid(), text: '', color: randomColor });
-            saveData(); // 保存新增档位
+            saveData(); 
             renderTiersUI(); 
             if(isMapLoaded) renderMap();
         }
@@ -296,7 +374,7 @@
             for(let p in provinceScores) {
                 if(provinceScores[p] === id) delete provinceScores[p];
             }
-            saveData(); // 保存删除状态
+            saveData(); 
             renderTiersUI(); 
             if(isMapLoaded) renderMap();
         }
@@ -305,8 +383,11 @@
             e.stopPropagation();
             activeTierForColor = id;
             popover.style.display = 'grid';
-            popover.style.left = (e.clientX + 20) + 'px';
-            popover.style.top = (e.clientY - 10) + 'px';
+            // 如果不是移动端，就跟随鼠标弹出；移动端则由CSS控制居中
+            if (!isMobile()) {
+                popover.style.left = (e.clientX + 20) + 'px';
+                popover.style.top = (e.clientY - 10) + 'px';
+            }
             settingsMenu.style.display = 'none';
         }
 
@@ -322,7 +403,7 @@
                         const t = tiers.find(x => x.id === activeTierForColor);
                         if (t) t.color = color;
                         popover.style.display = 'none';
-                        saveData(); // 保存颜色修改
+                        saveData(); 
                         renderTiersUI();
                         if(isMapLoaded) renderMap();
                     }
@@ -361,7 +442,7 @@
                     if (fromIndex === index.toString()) return;
                     const item = tiers.splice(fromIndex, 1)[0];
                     tiers.splice(index, 0, item);
-                    saveData(); // 保存拖拽排序
+                    saveData(); 
                     renderTiersUI(); 
                     if(isMapLoaded) renderMap();
                 });
@@ -505,7 +586,7 @@
             else delete provinceScores[provinceName];
             
             modal.style.display = 'none';
-            saveData(); // 保存打分状态
+            saveData(); 
             if(isMapLoaded) renderMap(); 
         }
 
@@ -524,14 +605,32 @@
             });
             
             modal.style.display = 'block';
-            modal.style.left = x + 'px';
-            modal.style.top = y + 'px';
+            
+            // 【核心防溢出逻辑】确保弹窗不会飞出手机屏幕边界
+            setTimeout(() => {
+                const rect = modal.getBoundingClientRect();
+                let finalX = x;
+                let finalY = y;
+                
+                if (finalX + rect.width > window.innerWidth) {
+                    finalX = window.innerWidth - rect.width - 15;
+                }
+                if (finalY + rect.height > window.innerHeight) {
+                    finalY = window.innerHeight - rect.height - 15;
+                }
+                
+                modal.style.left = Math.max(10, finalX) + 'px';
+                modal.style.top = Math.max(10, finalY) + 'px';
+            }, 0);
         }
 
         function exportImage() {
             popover.style.display = 'none';
             modal.style.display = 'none';
             settingsMenu.style.display = 'none';
+            // 导出截图时，强行隐藏折叠后的面板残骸
+            if(isCollapsed) configPanel.style.display = 'none';
+            
             document.body.classList.add('exporting');
 
             chart.setOption({
@@ -546,7 +645,9 @@
                     link.download = '夯HANG_中国地图标注.png';
                     link.href = canvas.toDataURL('image/png');
                     link.click();
+                    
                     document.body.classList.remove('exporting');
+                    configPanel.style.display = 'block'; // 恢复显示
                 });
             }, 500); 
         }
@@ -555,7 +656,10 @@
             if (!params.name) return; 
             currentProvince = params.name;
             const event = params.event.event;
-            showRatingModal(event.clientX + 15, event.clientY + 15);
+            // 移动端点击事件兼容
+            const clientX = event.clientX || (event.touches && event.touches[0].clientX) || 100;
+            const clientY = event.clientY || (event.touches && event.touches[0].clientY) || 100;
+            showRatingModal(clientX + 15, clientY + 15);
         });
 
         chart.getZr().on('click', function(event) {
@@ -580,7 +684,13 @@
             }
         });
 
-        window.addEventListener('resize', () => chart.resize());
+        // 监听屏幕尺寸变化，实时调整中心点和菜单状态
+        window.addEventListener('resize', () => {
+            const currentIsMobile = isMobile();
+            PERFECT_CENTER = currentIsMobile ? [104, 35] : [100, 36]; 
+            PERFECT_ZOOM = currentIsMobile ? 1.2 : 1.05;
+            chart.resize();
+        });
 
         document.addEventListener('click', (e) => {
             if (!popover.contains(e.target) && !e.target.classList.contains('color-dot')) {
@@ -591,12 +701,13 @@
             }
         });
 
-        // 启动逻辑：先读缓存，再渲染 UI
+        // 启动逻辑
+        applyCollapseState(); 
         initPopover();
         loadData();
         renderTiersUI(); 
 
-// 废弃不稳定的阿里云接口，改用全球稳定的 jsDelivr CDN ECharts 官方底层地图包
+        // 废弃不稳定的阿里云，使用全网最稳定的 jsDelivr CDN ECharts 官方底层包！
         fetch('https://cdn.jsdelivr.net/npm/echarts@4.9.0/map/json/china.json')
             .then(response => response.json())
             .then(geoJson => {
