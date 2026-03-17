@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>夯HANG - 中国地图自定义标注</title>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         body {
             margin: 0; padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #121214; color: #fff;
             overflow: hidden; user-select: none;
-            touch-action: none; /* 彻底屏蔽移动端双击放大等系统手势干扰 */
+            touch-action: none; 
         }
         #map-container { width: 100vw; height: 100vh; z-index: 1; }
         
@@ -32,24 +31,19 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* 折叠状态：只隐藏列表，留下底部操作栏 */
         #config-panel.collapsed #tier-list { display: none !important; }
 
         #tier-list { display: flex; flex-direction: column; gap: 10px; }
         .tier-row {
             display: flex; align-items: center; gap: 10px;
             background: rgba(255,255,255,0.03); padding: 5px; border-radius: 5px;
-            border: 1px solid transparent; cursor: pointer; /* 增加可点击的暗示 */
+            border: 1px solid transparent; cursor: pointer; 
             transition: all 0.2s;
         }
-        /* “笔刷”高亮模式的专属视觉 */
         .tier-row.active-brush {
-            border-color: #fff;
-            background: rgba(255, 255, 255, 0.12);
-            box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
-            transform: scale(1.02);
+            border-color: #fff; background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.15); transform: scale(1.02);
         }
-        
         .tier-row.dragging { opacity: 0.4; border: 1px dashed #666; }
         
         .key-hint {
@@ -70,7 +64,7 @@
             flex: 1; min-width: 50px; background: transparent; border: none; 
             border-bottom: 1px solid #333336; color: #fff; 
             font-size: 16px; font-weight: 600; outline: none; padding: 4px 0;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s; pointer-events: auto;
         }
         .tier-input:focus { border-bottom-color: #888; }
         
@@ -89,12 +83,10 @@
         }
         .add-tier-row:hover { border-color: #666; color: #aaa; background: rgba(255,255,255,0.02); }
 
-        /* 面板底部栏重新排布：左截图，右齿轮+折叠 */
         .panel-bottom-bar {
             display: flex; gap: 10px; align-items: center; justify-content: space-between;
             margin-top: 0; padding-top: 0; border-top: none;
         }
-        /* 展开时才显示分割线 */
         #config-panel:not(.collapsed) .panel-bottom-bar {
             margin-top: 15px; padding-top: 15px; border-top: 1px dashed #333336;
         }
@@ -115,7 +107,6 @@
         .gear-btn:hover { background: #333339; color: #fff; transform: scale(1.05); }
         .gear-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
-        /* 设置菜单绝对依附在面板内部右下角上方 */
         #settings-menu {
             display: none; position: absolute; bottom: 65px; right: 15px; z-index: 200;
             background: #1e1e20; border: 1px solid #333; padding: 10px;
@@ -142,7 +133,7 @@
             display: none; position: absolute; z-index: 200;
             background: #1e1e20; border: 1px solid #333; padding: 8px;
             border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.8);
-            grid-template-columns: repeat(5, 1fr); /* 完美的 5x5 矩阵 */
+            grid-template-columns: repeat(5, 1fr); 
             gap: 6px;
         }
         .swatch { width: 22px; height: 22px; border-radius: 4px; cursor: pointer; }
@@ -163,23 +154,28 @@
         .modal-btn-clear { background: #2a2a2c; color: #888; margin-top: 4px; text-shadow: none; }
         .modal-btn-clear:hover { background: #ff4d4f; color: #fff; }
 
-        /* ======= 移动端适配 ======= */
+        /* ======= 移动端终极适配 (横向滑动栏) ======= */
         @media (max-width: 768px) {
             #config-panel {
                 top: auto; bottom: 20px; left: 50%; transform: translateX(-50%);
-                width: 85vw; max-height: 45vh; overflow-y: auto; padding: 12px;
+                width: 90vw; padding: 12px;
             }
+            #tier-list {
+                flex-direction: row; overflow-x: auto; flex-wrap: nowrap;
+                padding-bottom: 8px; scrollbar-width: none; /* 隐藏滚动条 */
+            }
+            #tier-list::-webkit-scrollbar { display: none; }
+            .tier-row { flex-shrink: 0; padding: 6px 10px; }
+            .key-hint { display: none; } /* 移动端隐藏快捷键数字 */
+            .tier-input { width: 50px; min-width: 50px; font-size: 14px; }
+            .btn-del { display: block; opacity: 1; padding: 0; margin-left: 2px; } /* 移动端常驻删除按钮 */
+            .add-tier-row { flex-shrink: 0; padding: 4px 15px; }
+            
             #watermark { font-size: 50px; bottom: auto; top: 15px; left: 20px; }
             #color-popover {
                 left: 50% !important; transform: translateX(-50%); top: 50% !important; margin-top: -100px;
             }
-            .btn-del { opacity: 1; }
         }
-
-        body.exporting .no-export { display: none !important; }
-        body.exporting #config-panel { box-shadow: none !important; border-color: transparent !important; background: transparent !important; backdrop-filter: none !important; padding: 0 !important; }
-        body.exporting .tier-row { background: transparent !important; border: none !important; }
-        body.exporting .tier-input { border: none !important; padding-right: 28px; } 
     </style>
 </head>
 <body>
@@ -191,7 +187,7 @@
     <div id="config-panel">
         <div id="tier-list"></div>
         
-        <div class="panel-bottom-bar no-export">
+        <div class="panel-bottom-bar">
             <button class="export-btn" onclick="exportImage()">📸 一键导出图片</button>
             <div style="display: flex; gap: 8px;">
                 <button class="gear-btn" onclick="toggleSettings(event)" title="设置">
@@ -216,7 +212,7 @@
         </div>
     </div>
 
-    <div id="rating-modal" class="no-export">
+    <div id="rating-modal">
         <div class="modal-btn-group" id="modal-btns"></div>
         <button class="modal-btn modal-btn-clear" onclick="rateProvince(currentProvince, null)">[ 0 ] 取消标记</button>
     </div>
@@ -235,8 +231,6 @@
         let hoveredProvince = ''; 
         let currentProvince = ''; 
         let isMapLoaded = false; 
-        
-        // 【核心状态】当前选中的“油漆笔刷”档位ID
         let activeBrushTier = null; 
 
         const isMobile = () => window.innerWidth < 768;
@@ -255,7 +249,6 @@
         let tiers = [];
         let provinceScores = {};
 
-        // 加入了 `#1c1c1e` (原生底色)，总共 25 色，刚好 5x5 排列
         const palettes = [
             '#1c1c1e', '#ff7875', '#ff9c6e', '#ffc53d', '#95de64', '#5cdbd3', 
             '#69c0ff', '#b37feb', '#ff85c0', '#f5222d', '#fa8c16', '#fadb14', 
@@ -306,13 +299,9 @@
 
             if (savedScores) {
                 try { provinceScores = JSON.parse(savedScores); } catch(e) { provinceScores = {}; }
-            } else {
-                provinceScores = {};
-            }
+            } else { provinceScores = {}; }
 
-            if (savedShowLabels !== null) {
-                showLabelsSwitch.checked = (savedShowLabels === 'true');
-            }
+            if (savedShowLabels !== null) { showLabelsSwitch.checked = (savedShowLabels === 'true'); }
         }
 
         function resetDefaults(skipRender = true) {
@@ -342,7 +331,6 @@
             const t = tiers.find(x => x.id === id);
             if (t) t.text = val;
             saveData(); 
-            if(isMapLoaded) renderMap();
         }
 
         function addTier() {
@@ -373,8 +361,6 @@
                 popover.style.top = (e.clientY - 10) + 'px';
             }
             settingsMenu.style.display = 'none';
-            
-            // 此处绑定点击色板修改当前行颜色的临时引用
             popover.dataset.targetTier = id;
         }
 
@@ -409,32 +395,25 @@
                 const key = index + 1;
                 const row = document.createElement('div');
                 
-                // 刷子模式下高亮激活的档位
                 row.className = 'tier-row' + (activeBrushTier === tier.id ? ' active-brush' : '');
                 row.draggable = true;
                 
                 row.innerHTML = `
-                    <div class="key-hint no-export">${key}</div>
+                    <div class="key-hint">${key}</div>
                     <div class="color-dot" style="background-color:${tier.color}" onclick="openColorPicker(event, '${tier.id}')"></div>
                     <input type="text" class="tier-input" value="${tier.text}" oninput="updateText('${tier.id}', this.value)">
-                    <button class="btn-del no-export" onclick="deleteTier('${tier.id}')">×</button>
+                    <button class="btn-del" onclick="deleteTier('${tier.id}')">×</button>
                 `;
                 
-                // 【核心突破】点击行即变成“油漆桶”涂色刷子
                 row.onclick = (e) => {
-                    // 防止误触（点颜色、输入文字、点删除时不触发刷子切换）
                     if (e.target.tagName === 'INPUT' || 
                         e.target.classList.contains('color-dot') || 
                         e.target.classList.contains('btn-del') || 
                         e.target.classList.contains('key-hint')) {
                         return;
                     }
-                    if (activeBrushTier === tier.id) {
-                        activeBrushTier = null; // 取消选中
-                    } else {
-                        activeBrushTier = tier.id; // 设置当前刷子
-                    }
-                    renderTiersUI(); // 刷新 UI，让高亮框显示出来
+                    activeBrushTier = (activeBrushTier === tier.id) ? null : tier.id;
+                    renderTiersUI(); 
                 };
 
                 row.addEventListener('dragstart', e => {
@@ -459,28 +438,16 @@
 
             if (tiers.length < 9) {
                 const addRow = document.createElement('div');
-                addRow.className = 'add-tier-row no-export';
+                addRow.className = 'add-tier-row';
                 addRow.innerHTML = '+';
                 addRow.onclick = addTier; 
                 list.appendChild(addRow);
             }
         }
 
-        function getScatterStyle(provinceName) {
-            const tierId = provinceScores[provinceName];
-            const t = tiers.find(t => t.id === tierId);
-            return {
-                color: t ? t.color : '#1c1c1e',      
-                borderColor: '#2c2c2e', 
-                borderWidth: 1.5,       
-                opacity: 1              
-            };
-        }
-
-        function renderMap() {
-            if (!isMapLoaded) return; 
+        // 提取生成 Map Option 的核心逻辑，供屏幕渲染和截图复用
+        function getMapOption(isExport = false) {
             const showLabels = showLabelsSwitch.checked;
-            
             const tinyProvinces = ['北京', '天津', '上海', '香港', '澳门'];
             const tinyLinesData = [
                 { coords: [[116.405, 39.904], [119.5, 40.8]] }, 
@@ -510,7 +477,15 @@
                 return null;
             }).filter(Boolean);
 
+            // 强行把隐形的"触控底板"加进渲染区域（解决点海面无法拖动的问题）
+            regionsData.push({
+                name: 'SeaBoundingBox',
+                itemStyle: { areaColor: 'transparent', borderColor: 'transparent' },
+                emphasis: { disabled: true }
+            });
+
             const hoverLabelFormatter = function(params) {
+                if (params.name === 'SeaBoundingBox') return '';
                 const tierId = provinceScores[params.name];
                 if (tierId) {
                     const tier = tiers.find(t => t.id === tierId);
@@ -525,14 +500,19 @@
                 {
                     type: 'scatter', coordinateSystem: 'geo', symbol: 'circle', symbolSize: 13, 
                     data: [
-                        { name: '香港', value: [114.173355, 22.320048], itemStyle: getScatterStyle('香港') },
-                        { name: '澳门', value: [113.54909, 22.198951], itemStyle: getScatterStyle('澳门') }
+                        { name: '香港', value: [114.173355, 22.320048], itemStyle: {
+                            color: provinceScores['香港'] ? tiers.find(t=>t.id===provinceScores['香港'])?.color || '#1c1c1e' : '#1c1c1e',
+                            borderColor: '#2c2c2e', borderWidth: 1.5
+                        }},
+                        { name: '澳门', value: [113.54909, 22.198951], itemStyle: {
+                            color: provinceScores['澳门'] ? tiers.find(t=>t.id===provinceScores['澳门'])?.color || '#1c1c1e' : '#1c1c1e',
+                            borderColor: '#2c2c2e', borderWidth: 1.5
+                        }}
                     ],
                     emphasis: {
                         itemStyle: { borderColor: '#fff', borderWidth: 2 },
                         label: {
-                            show: true, color: '#ffffff',
-                            fontSize: 13, fontWeight: 'bold',
+                            show: true, color: '#ffffff', fontSize: 13, fontWeight: 'bold',
                             textBorderColor: 'rgba(0,0,0,0.8)', textBorderWidth: 2,
                             formatter: hoverLabelFormatter
                         }
@@ -560,13 +540,17 @@
             const option = {
                 backgroundColor: '#121214', animation: false, tooltip: { show: false },
                 geo: {
-                    map: 'custom_china', roam: true, scaleLimit: { min: 1, max: 6 },
-                    center: PERFECT_CENTER, zoom: PERFECT_ZOOM, selectedMode: false, 
+                    map: 'custom_china', roam: true, 
+                    // 【核心优化】严苛的缩放限制，防止移动端缩放乱飞
+                    scaleLimit: { min: 0.8, max: 4 }, 
+                    center: isExport ? [102, 36] : PERFECT_CENTER, // 导图强制使用完美黄金居中
+                    zoom: isExport ? 1.15 : PERFECT_ZOOM,
+                    selectedMode: false, 
                     label: { 
                         show: showLabels, color: '#e0e0e0', fontSize: 11,
                         textBorderColor: 'rgba(0,0,0,0.8)', textBorderWidth: 2, 
                         formatter: function(params) {
-                            if (tinyProvinces.includes(params.name)) return '';
+                            if (tinyProvinces.includes(params.name) || params.name === 'SeaBoundingBox') return '';
                             return params.name;
                         }
                     },
@@ -574,8 +558,7 @@
                     emphasis: {
                         itemStyle: { areaColor: '#28282b' },
                         label: {
-                            show: true, color: '#ffffff',
-                            fontSize: 13, fontWeight: 'bold', 
+                            show: true, color: '#ffffff', fontSize: 13, fontWeight: 'bold', 
                             textBorderColor: 'rgba(0,0,0,0.8)', textBorderWidth: 2,
                             formatter: hoverLabelFormatter
                         }
@@ -584,11 +567,17 @@
                 },
                 series: seriesArray
             };
-            chart.setOption(option, true); 
+            
+            return option;
+        }
+
+        function renderMap() {
+            if (!isMapLoaded) return; 
+            chart.setOption(getMapOption(false), true); 
         }
 
         function rateProvince(provinceName, tierId) {
-            if (!provinceName) return;
+            if (!provinceName || provinceName === 'SeaBoundingBox') return;
             if (tierId) provinceScores[provinceName] = tierId;
             else delete provinceScores[provinceName];
             
@@ -617,70 +606,94 @@
                 const rect = modal.getBoundingClientRect();
                 let finalX = x;
                 let finalY = y;
-                
-                if (finalX + rect.width > window.innerWidth) {
-                    finalX = window.innerWidth - rect.width - 15;
-                }
-                if (finalY + rect.height > window.innerHeight) {
-                    finalY = window.innerHeight - rect.height - 15;
-                }
-                
+                if (finalX + rect.width > window.innerWidth) finalX = window.innerWidth - rect.width - 15;
+                if (finalY + rect.height > window.innerHeight) finalY = window.innerHeight - rect.height - 15;
                 modal.style.left = Math.max(10, finalX) + 'px';
                 modal.style.top = Math.max(10, finalY) + 'px';
             }, 0);
         }
 
+        // ================= 终极杀手锏：原生独立渲染引擎导出图 =================
         function exportImage() {
             popover.style.display = 'none';
             modal.style.display = 'none';
             settingsMenu.style.display = 'none';
-            if(isCollapsed) configPanel.style.display = 'none';
-            
-            document.body.classList.add('exporting');
 
-            chart.setOption({
-                geo: { center: PERFECT_CENTER, zoom: PERFECT_ZOOM }
-            });
+            // 1. 生成一个屏幕外的绝对容器，强制固定为 1920x1080 尺寸
+            const exportContainer = document.createElement('div');
+            exportContainer.style.width = '1920px';
+            exportContainer.style.height = '1080px';
+            exportContainer.style.position = 'absolute';
+            exportContainer.style.top = '-9999px';
+            exportContainer.style.left = '-9999px';
+            document.body.appendChild(exportContainer);
+
+            // 2. 初始化一个一次性的隐形 ECharts 实例
+            const exportChart = echarts.init(exportContainer);
+            const exportOption = getMapOption(true);
+
+            // 3. 用 ECharts 强大的 Graphic 矢量图层，直接把档位表画到图纸左上角！
+            const legendGraphics = tiers.map((tier, index) => ({
+                type: 'group', left: 60, top: 60 + index * 50,
+                children: [
+                    {
+                        type: 'rect', shape: { width: 36, height: 36, r: 8 },
+                        style: { fill: tier.color, stroke: 'rgba(255,255,255,0.2)', lineWidth: 1 }
+                    },
+                    {
+                        type: 'text',
+                        style: { text: tier.text || '未命名', fill: '#fff', x: 55, y: 18, fontSize: 24, fontWeight: 'bold', textVerticalAlign: 'middle' }
+                    }
+                ]
+            }));
             
+            // 加上巨型水印
+            legendGraphics.push({
+                type: 'text', right: 60, bottom: 60,
+                style: { text: '夯 HANG', fill: 'rgba(255,255,255,0.06)', fontSize: 160, fontWeight: '900' }
+            });
+
+            exportOption.graphic = legendGraphics;
+            exportChart.setOption(exportOption);
+
+            // 4. 渲染完毕后直接抽血提取高清 base64 图像
             setTimeout(() => {
-                html2canvas(document.body, { 
-                    backgroundColor: '#121214', scale: 2 
-                }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = '夯HANG_中国地图标注.png';
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-                    
-                    document.body.classList.remove('exporting');
-                    configPanel.style.display = 'block'; 
+                const url = exportChart.getDataURL({
+                    type: 'png',
+                    pixelRatio: 1.5, // 相当于约 3K 分辨率
+                    backgroundColor: '#121214'
                 });
-            }, 500); 
+                
+                const link = document.createElement('a');
+                link.download = '夯HANG_中国地图标注.png';
+                link.href = url;
+                link.click();
+                
+                // 毁尸灭迹
+                exportChart.dispose();
+                document.body.removeChild(exportContainer);
+            }, 800); 
         }
 
-        // ================= 核心点击事件重写 =================
         chart.on('click', function(params) {
-            if (!params.name) return; 
+            if (!params.name || params.name === 'SeaBoundingBox') return; 
             currentProvince = params.name;
             
-            // 模式 1：如果开启了“油漆刷”模式，直接上色或擦除
             if (activeBrushTier) {
                 if (provinceScores[currentProvince] === activeBrushTier) {
-                    rateProvince(currentProvince, null); // 橡皮擦逻辑：再次点击同档位则取消
+                    rateProvince(currentProvince, null); 
                 } else {
-                    rateProvince(currentProvince, activeBrushTier); // 涂色
+                    rateProvince(currentProvince, activeBrushTier); 
                 }
                 return; 
             }
 
-            // 模式 2：普通菜单模式（完美解决移动端坐标获取问题）
-            // ECharts 提供的 offsetX 和 offsetY 相对容器的距离永远是准确的
             const cx = params.event.offsetX;
             const cy = params.event.offsetY;
             showRatingModal(cx + 15, cy + 15);
         });
 
         chart.getZr().on('click', function(event) {
-            // 点击空白海域，关闭弹窗
             if (!event.target) modal.style.display = 'none';
         });
 
@@ -690,7 +703,7 @@
 
         window.addEventListener('keydown', function(e) {
             if (e.target.tagName === 'INPUT') return;
-            if (!hoveredProvince) return;
+            if (!hoveredProvince || hoveredProvince === 'SeaBoundingBox') return;
 
             if (e.key === '0') {
                 rateProvince(hoveredProvince, null);
@@ -726,25 +739,40 @@
         fetch('https://cdn.jsdelivr.net/npm/echarts@4.9.0/map/json/china.json')
             .then(response => response.json())
             .then(geoJson => {
+                
+                // 【绝妙解法】安插一个隐形的“触控板”覆盖全世界，解决海面无法拖动的痛点
+                geoJson.features.unshift({
+                    type: "Feature",
+                    properties: { name: "SeaBoundingBox" },
+                    geometry: {
+                        type: "Polygon",
+                        coordinates: [[[50, 0], [160, 0], [160, 70], [50, 70], [50, 0]]]
+                    }
+                });
+
                 geoJson.features = geoJson.features.filter(feature => {
                     let name = feature.properties.name;
                     if (!name) return false;
+                    
+                    if (name === "SeaBoundingBox") return true; // 放行触控板
+
                     name = name.replace(/(维吾尔|壮族|回族)?自治区|特别行政区|省|市/g, '');
                     feature.properties.name = name;
                     
                     if (name === '甘肃') feature.properties.cp = [103.82, 36.06]; 
                     if (name === '河北') feature.properties.cp = [115.48, 38.85]; 
                     
-                    if (name === '海南' && feature.geometry.type === 'MultiPolygon') {
-                        let mainIsland = feature.geometry.coordinates[0];
+                    // 【切除飞地】将海南、湖南的碎块剔除，只保留主体多边形
+                    if ((name === '海南' || name === '湖南') && feature.geometry.type === 'MultiPolygon') {
+                        let mainPoly = feature.geometry.coordinates[0];
                         let maxPoints = 0;
                         feature.geometry.coordinates.forEach(poly => {
                             if (poly[0].length > maxPoints) {
                                 maxPoints = poly[0].length;
-                                mainIsland = poly;
+                                mainPoly = poly;
                             }
                         });
-                        feature.geometry.coordinates = [mainIsland];
+                        feature.geometry.coordinates = [mainPoly];
                     }
                     return validProvinces.includes(name);
                 });
