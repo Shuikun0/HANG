@@ -55,9 +55,8 @@
         
         .tier-input {
             flex: 1; min-width: 50px; background: transparent; border: none; 
-            border-bottom: 1px solid #333336; color: #fff; 
-            font-size: 16px; font-weight: 600; outline: none; padding: 4px 0;
-            transition: border-color 0.2s;
+            color: #fff; font-size: 16px; font-weight: 600; outline: none; padding: 4px 0;
+            pointer-events: auto;
         }
         .tier-input:focus { border-bottom-color: #888; }
         
@@ -82,12 +81,19 @@
         }
         .export-btn { 
             flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
-            background: #1a4a38; border: 1px solid #237804; color: #4ade80; 
+            background: #2c2c2e;        
+            border: 1px solid #333336;  
+            color: #aaa;                
             padding: 10px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 700;
             transition: 0.2s; outline: none; letter-spacing: 1px;
         }
-        .export-btn:hover { background: #237804; color: #fff; }
-        
+
+        .export-btn:hover { 
+            background: #333339; 
+            color: #fff; 
+            border-color: #444;
+        }
+                
         .gear-btn {
             background: #2c2c2e; border: 1px solid #333336; color: #aaa; cursor: pointer;
             width: 38px; height: 38px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
@@ -155,10 +161,11 @@
     <div id="color-popover"></div>
 
     <div id="config-panel">
+        <div style="font-size: 10px; color: #555; margin-bottom: 8px; padding-left: 5px;">点击文本可自定义档位名，点击色块可切换颜色</div>
         <div id="tier-list"></div>
         
         <div class="panel-bottom-bar no-export">
-            <button class="export-btn" onclick="exportImage()">📸 一键导出图片</button>
+            <button class="export-btn" onclick="exportImage()">📸 导出图片</button>
             <button class="gear-btn" onclick="toggleSettings(event)">
                 <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
             </button>
@@ -195,6 +202,7 @@
         let currentProvince = ''; 
         let activeTierForColor = null;
         let isMapLoaded = false; 
+        let isFirstRender = true; // 新增：用于判断是否是首次加载地图
 
         const PERFECT_CENTER = [100, 36]; 
         const PERFECT_ZOOM = 1.05;
@@ -435,6 +443,7 @@
 
             const seriesArray = [
                 {
+                    id: 'hk_macau', // 新增：显式声明 ID 以便让 replaceMerge 准确控制组件更新
                     type: 'scatter', coordinateSystem: 'geo', symbol: 'circle', symbolSize: 13, 
                     data: [
                         { name: '香港', value: [114.173355, 22.320048], itemStyle: getScatterStyle('香港') },
@@ -454,11 +463,13 @@
 
             if (showLabels) {
                 seriesArray.push({
+                    id: 'tiny_lines', // 新增 ID
                     type: 'lines', coordinateSystem: 'geo', zlevel: 2, silent: true,
                     lineStyle: { color: '#666', width: 1, type: 'dashed', opacity: 0.8 },
                     data: tinyLinesData
                 });
                 seriesArray.push({
+                    id: 'tiny_labels', // 新增 ID
                     type: 'scatter', coordinateSystem: 'geo', zlevel: 2, silent: true,
                     symbol: 'circle', symbolSize: 3, itemStyle: { color: '#666' },
                     label: { 
@@ -469,34 +480,45 @@
                 });
             }
 
+            const geoConfig = {
+                map: 'custom_china', roam: true, scaleLimit: { min: 1, max: 6 },
+                selectedMode: false, 
+                label: { 
+                    show: showLabels, color: '#e0e0e0', fontSize: 11,
+                    textBorderColor: 'rgba(0,0,0,0.8)', textBorderWidth: 2, 
+                    formatter: function(params) {
+                        if (tinyProvinces.includes(params.name)) return '';
+                        return params.name;
+                    }
+                },
+                itemStyle: { areaColor: '#1c1c1e', borderColor: '#2c2c2e', borderWidth: 1 },
+                emphasis: {
+                    itemStyle: { areaColor: '#28282b' },
+                    label: {
+                        show: true, color: '#ffffff',
+                        fontSize: 13, fontWeight: 'bold', 
+                        textBorderColor: 'rgba(0,0,0,0.8)', textBorderWidth: 2,
+                        formatter: hoverLabelFormatter
+                    }
+                },
+                regions: regionsData 
+            };
+
+            // 新增：只有第一次渲染才应用默认的居中和缩放，防止用户的移动状态被重置
+            if (isFirstRender) {
+                geoConfig.center = PERFECT_CENTER;
+                geoConfig.zoom = PERFECT_ZOOM;
+                isFirstRender = false;
+            }
+
             const option = {
                 backgroundColor: '#121214', animation: false, tooltip: { show: false },
-                geo: {
-                    map: 'custom_china', roam: true, scaleLimit: { min: 1, max: 6 },
-                    center: PERFECT_CENTER, zoom: PERFECT_ZOOM, selectedMode: false, 
-                    label: { 
-                        show: showLabels, color: '#e0e0e0', fontSize: 11,
-                        textBorderColor: 'rgba(0,0,0,0.8)', textBorderWidth: 2, 
-                        formatter: function(params) {
-                            if (tinyProvinces.includes(params.name)) return '';
-                            return params.name;
-                        }
-                    },
-                    itemStyle: { areaColor: '#1c1c1e', borderColor: '#2c2c2e', borderWidth: 1 },
-                    emphasis: {
-                        itemStyle: { areaColor: '#28282b' },
-                        label: {
-                            show: true, color: '#ffffff',
-                            fontSize: 13, fontWeight: 'bold', 
-                            textBorderColor: 'rgba(0,0,0,0.8)', textBorderWidth: 2,
-                            formatter: hoverLabelFormatter
-                        }
-                    },
-                    regions: regionsData 
-                },
+                geo: geoConfig,
                 series: seriesArray
             };
-            chart.setOption(option, true); 
+            
+            // 修改：去掉 true，改用 { replaceMerge: ['series'] } 让其增量更新同时兼容显示地名的数组增减
+            chart.setOption(option, { replaceMerge: ['series'] }); 
         }
 
         function rateProvince(provinceName, tierId) {
@@ -524,6 +546,13 @@
             });
             
             modal.style.display = 'block';
+            if (!document.getElementById('keyboard-tip')) {
+                const tip = document.createElement('div');
+                tip.id = 'keyboard-tip';
+                tip.style.cssText = 'font-size: 12px; color: #555; text-align: center; margin-top: 8px; ';
+                tip.innerHTML = '按数字键快速标记';
+                modal.appendChild(tip);
+            }
             modal.style.left = x + 'px';
             modal.style.top = y + 'px';
         }
